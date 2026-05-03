@@ -1,8 +1,13 @@
-#ifndef  _INSTRUCTIONS_H_
-#define  _INSTRUCTIONS_H_
+#ifndef  _REGISTER_FILE_H_
+#define  _REGISTER_FILE_H_
 
 #include <stdint.h>
 #include <stdbool.h>
+
+#define ZERO_FLAG_OFFSET 7
+#define SUBSTRACTION_FLAG_OFFSET 6
+#define HALF_CARRY_FLAG_OFFSET 5
+#define CARRY_FLAG_OFFSET 4
 
 typedef struct gb_register_file {
     uint16_t pc; // program counter

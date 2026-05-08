@@ -24,6 +24,10 @@ typedef struct gb_register_file {
     uint8_t  ie; // interrupt enable
 } gb_register_file;
 
+typedef enum target {
+    A, B, C, D, E, H, L, HL, BC, DE, SP
+} target;
+
 gb_register_file* init_register_file();
 
 /*
@@ -46,6 +50,7 @@ bool get_half_carry_flag(gb_register_file* register_file);
 void set_carry_flag(gb_register_file* register_file, bool value);
 bool get_carry_flag(gb_register_file* register_file);
 
+uint8_t* get_reg_pointer(gb_register_file* register_file, target target);
 
 uint16_t get_bc_register_value(gb_register_file* register_file);
 void     set_bc_register(gb_register_file* register_file, uint16_t value);

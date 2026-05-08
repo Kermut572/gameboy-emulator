@@ -58,6 +58,29 @@ bool get_carry_flag(gb_register_file* register_file)
     return (bool) ((f >> CARRY_FLAG_OFFSET) & true);
 }
 
+uint8_t* get_reg_pointer(gb_register_file* register_file, target target)
+{
+    switch(target)
+    {
+        case A:
+            return &register_file->a;
+        case B:
+            return &register_file->b;
+        case C:
+            return &register_file->c;
+        case D:
+            return &register_file->d;
+        case E:
+            return &register_file->e;
+        case H:
+            return &register_file->h;
+        case L:
+            return &register_file->l;
+        default:
+            return NULL; // target is a 16-bits register
+    }
+}
+
 uint16_t get_bc_register_value(gb_register_file* register_file)
 {
     uint16_t b = (uint16_t) register_file->b;

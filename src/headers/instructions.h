@@ -2,6 +2,7 @@
 #define _INSTRUCTIONS_H_
 
 #include "register_file.h"
+#include <stdint.h>
 
 /*
  * Check https://gbdev.io/gb-opcodes/optables/ https://gist.github.com/SakiiR/62661e45ee8b2ab13f0dc8203a7dfbd9  https://rgbds.gbdev.io/docs/v1.0.1/gbz80.7#ADC_A,r8
@@ -12,6 +13,12 @@ typedef enum instruction {
     ADC_R8, ADC_HL, ADC_N8,
     ADD_R8, ADD_HL, ADD_N8, ADD_SP,
     AND_R8,
+    BIT_R8, BIT_HL,
+    CALL_N16, CALL_CC,
+    CCF,
+    CP_R8, CP_HL, CP_N8,
+    CPL,
+    JP_N16, JP_CC, JP_HL,
     LD
 } instruction;
 
@@ -31,9 +38,28 @@ void process_instruction_and_r8(gb_register_file *register_file, target target);
 void process_instruction_and_hl(gb_register_file *register_file);
 void process_instruction_and_n8(gb_register_file *register_file, uint8_t value);
 
+void process_instruction_bit_r8(gb_register_file *register_file, uint8_t value, target target);
+void process_instruction_bit_hl(gb_register_file *register_file, uint8_t value);
+
+void process_instruction_call_n16(gb_register_file *register_file, uint16_t value);
+void process_instruction_call_cc(gb_register_file *register_file, uint16_t value, bool cc);
+
+void process_instruction_ccf(gb_register_file *register_file);
+
+void process_instruction_cp_r8(gb_register_file *register_file, target target);
+void process_instruction_cp_hl(gb_register_file *register_file);
+void process_instruction_cp_n8(gb_register_file *register_file, uint8_t value);
+
+void process_instruction_cpl(gb_register_file *register_file);
+
 void process_instruction_ld_const(gb_register_file *register_file, target target, uint8_t value);
 void process_instruction_ld_reg(gb_register_file *register_file, target target_reg, target source_reg);
 
+void process_instruction_jp_n16(gb_register_file *register_file, uint16_t value);
+void process_instruction_jp_cc(gb_register_file *register_file, uint16_t value, bool cc);
+void process_instruction_jp_hl(gb_register_file *register_file);
+
+void process_sub_discarded(gb_register_file *register_file, uint8_t value);
 void process_sum_to_reg_a(gb_register_file *register_file, uint8_t value);
 void process_sum_to_reg_hl(gb_register_file *register_file, uint16_t value);
 

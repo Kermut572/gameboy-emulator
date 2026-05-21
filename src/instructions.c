@@ -1,8 +1,10 @@
 #include "headers/instructions.h"
 #include "headers/register_file.h"
+#include "headers/stack.h"
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <sys/types.h>
 
 void process_instruction(gb_register_file* register_file, instruction instruction, ...)
 {
@@ -146,12 +148,102 @@ void process_instruction_and_r8(gb_register_file *register_file, target target)
 
 void process_instruction_and_hl(gb_register_file *register_file)
 {
-
+    uint8_t hl_byte = (uint8_t) get_hl_register_value(register_file);
+    uint8_t* a_ptr = &register_file->a;
+    *a_ptr = (*a_ptr & hl_byte);
+    set_zero_flag(register_file, *a_ptr == 0);
+    set_substraction_flag(register_file, false);
+    set_half_carry_flag(register_file, true);
+    set_carry_flag(register_file, false);
 }
 
 void process_instruction_and_n8(gb_register_file *register_file, uint8_t value)
 {
+    uint8_t* a_ptr = &register_file->a;
+    *a_ptr = (*a_ptr & value);
+    set_zero_flag(register_file, *a_ptr == 0);
+    set_substraction_flag(register_file, false);
+    set_half_carry_flag(register_file, true);
+    set_carry_flag(register_file, false);
+}
 
+void process_instruction_bit_r8(gb_register_file *register_file, uint8_t value, target target)
+{
+    uint8_t* reg_ptr = get_reg_pointer(register_file, target);
+    bool set = (*reg_ptr >> value) & 0b1;
+    set_zero_flag(register_file, set);
+    set_substraction_flag(register_file, false);
+    set_half_carry_flag(register_file, true);
+}
+
+void process_instruction_bit_hl(gb_register_file *register_file, uint8_t value)
+{
+    uint8_t hl_val = get_hl_register_value(register_file);
+    bool set = (hl_val >> value) & 0b1;
+    set_zero_flag(register_file, set);
+    set_substraction_flag(register_file, false);
+    set_half_carry_flag(register_file, true);
+}
+
+
+void process_instruction_call_n16(gb_register_file *register_file, uint16_t value)
+{
+    stack_push(register_file, value);
+    process_instruction_jp_n16(register_file, value);
+}
+
+void process_instruction_call_cc(gb_register_file *register_file, uint16_t value, bool cc)
+{
+    if(!cc) return;
+    process_instruction_call_n16(register_file, value);
+}
+
+void process_instruction_ccf(gb_register_file *register_file)
+{
+    set_substraction_flag(register_file, false);
+    set_half_carry_flag(register_file, false);
+    set_carry_flag(register_file, get_carry_flag(register_file));
+}
+
+void process_instruction_cp_r8(gb_register_file *register_file, target target)
+{
+    uint8_t* reg_ptr = get_reg_pointer(register_file, target);
+    process_sub_discarded(register_file, *reg_ptr);
+}
+
+void process_instruction_cp_hl(gb_register_file *register_file)
+{
+    uint8_t hl_val = (uint8_t) get_hl_register_value(register_file);
+    process_sub_discarded(register_file, hl_val);
+}
+
+void process_instruction_cp_n8(gb_register_file *register_file, uint8_t value)
+{
+    process_sub_discarded(register_file, value);
+}
+
+void process_instruction_cpl(gb_register_file *register_file)
+{
+    uint8_t* reg_a = &register_file->a;
+    *reg_a = ~(*reg_a);
+    set_half_carry_flag(register_file, true);
+    set_substraction_flag(register_file, true);
+}
+
+void process_instruction_jp_n16(gb_register_file *register_file, uint16_t value)
+{
+    register_file->pc = value;
+}
+
+void process_instruction_jp_cc(gb_register_file *register_file, uint16_t value, bool cc)
+{
+    if(!cc) return;
+    process_instruction_jp_n16(register_file, value);
+}
+
+void process_instruction_jp_hl(gb_register_file *register_file)
+{
+    process_instruction_jp_n16(register_file, get_hl_register_value(register_file));
 }
 
 void process_instruction_ld_const(gb_register_file *register_file, target target, uint8_t value)
@@ -208,6 +300,16 @@ void process_instruction_ld_reg(gb_register_file *register_file, target target_r
 
     uint16_t value = get_hl_register_value(register_file);
     *target_reg_ptr = (uint8_t) (value >> 8); //LS byte first? shit this might be wrong
+}
+
+void process_sub_discarded(gb_register_file *register_file, uint8_t value)
+{
+    uint8_t tmp = 0;
+    set_half_carry_flag(register_file, (register_file->a & 0xF) - (value & 0xF) > 0xF); //TODO check this
+    __builtin_sub_overflow(register_file->a, value, &tmp);
+    set_carry_flag(register_file, value > register_file->a);
+    set_zero_flag(register_file, tmp == 0);
+    set_substraction_flag(register_file, true);
 }
 
 void process_sum_to_reg_a(gb_register_file *register_file, uint8_t value)

@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "memory.h"
+
 
 #define ZERO_FLAG_OFFSET 7
 #define SUBSTRACTION_FLAG_OFFSET 6
@@ -22,6 +24,8 @@ typedef struct gb_register_file {
     uint8_t  l;
     uint8_t  ir; // instruction register
     uint8_t  ie; // interrupt enable
+
+    gb_memory* gb_memory_ptr;
 } gb_register_file;
 
 typedef enum target {
@@ -32,10 +36,10 @@ gb_register_file* init_register_file();
 
 /*
  * flags: ijkl 0000
- * i -> zero
- * j -> substraction
- * k -> half carry
- * l -> carry
+ * i -> zero            Z
+ * j -> substraction    N
+ * k -> half carry      H
+ * l -> carry           C
  */
 
 void set_zero_flag(gb_register_file* register_file, bool value);
